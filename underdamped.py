@@ -33,7 +33,7 @@ def print(*args, **kwargs):
     return __builtin__.print(*args, **kwargs)
 
 
-grid_size = 256
+grid_size = 64
 
 # Don't actually change anything in the config, it mostly isn't used.
 valid_config = {
@@ -63,7 +63,7 @@ def main(iteration):
 
         dt = 0.005
         string = "underdamped_{}_ud".format(grid_size)
-        fd = h5py.File('current_run/candidate_{}-{}-{}-{}-gs1-dt-{}.hdf5'.format("underdamped_{}_ud_nqp",prefix_hash, str(parameter), int(iteration), dt), 'w')
+        fd = h5py.File('current_run/candidate_{}-{}-{}-{}-gs1-dt-{}.hdf5'.format(string, prefix_hash, str(parameter), int(iteration), dt), 'w')
         start_time = time.time()
         overdamped = True
         run_once = False
