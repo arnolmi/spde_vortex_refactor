@@ -106,6 +106,7 @@ parser = argparse.ArgumentParser(description="Complex Fields into Angles")
 parser.add_argument('--source_data_path', help='Location of the source data', required=True)
 parser.add_argument('--target_data_path', help='location of the results', required=True)
 parser.add_argument('--num_threads', help='number of threads', type=int, required=True)
+parser.add_argument('-c', help='use cupy', action='store_true')
 args = parser.parse_args()
 
 main(args.source_data_path, args.target_data_path, args.num_threads)

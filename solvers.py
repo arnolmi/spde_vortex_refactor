@@ -1,15 +1,19 @@
 #!/bin/python3
 from __future__ import print_function
+import sys
 
-# Change this to False to disable cuda
-USE_CUPY = True
+# Change this to True to enable cuda
+USE_CUPY = False
 
 # We want to use cupy when possible, however,  you can also just use numpy
-if USE_CUPY:
+if '-c' in sys.argv or USE_CUPY:
     import cupy as np
     import cusignal as signal
     np.cuda.Device(0).use()
+    USE_CUPY = True
+    print("Using cupy")
 else:
+    print("Using Numpy")
     import numpy as np
     from scipy import signal
 

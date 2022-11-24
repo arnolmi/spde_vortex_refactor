@@ -143,7 +143,7 @@ if __name__ == '__main__':
     parser.add_argument("--show_plot", action='store_true')
     parser.add_argument("--file_name", required=True)
     parser.add_argument("--num_files", required=True, type=int)
-
+    parser.add_argument('-c', action='store_true')
     args = parser.parse_args()
     num_files = args.num_files
     show_plot = args.show_plot
