@@ -2,12 +2,13 @@
 from __future__ import print_function
 
 # Change this to False to disable cuda
-USE_CUPY = False
+USE_CUPY = True
 
 # We want to use cupy when possible, however,  you can also just use numpy
 if USE_CUPY:
     import cupy as np
     import cusignal as signal
+    np.cuda.Device(0).use()
 else:
     import numpy as np
     from scipy import signal

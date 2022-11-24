@@ -33,7 +33,7 @@ def print(*args, **kwargs):
     return __builtin__.print(*args, **kwargs)
 
 
-grid_size = 64
+grid_size = 256
 
 # Don't actually change anything in the config, it mostly isn't used.
 valid_config = {
@@ -145,9 +145,9 @@ def main(iteration):
                 print("time: {}".format(real_time))
                 print("runtime: {}".format(time.time() - start_time))
                 start_time = time.time()
-            if real_time >= 340:
+            if real_time >= 2680:
                 break
 #main(0)
-for x in tqdm(range(0,50)):
+for x in tqdm(range(0,5)):
     print("Iteration {}".format(x))
     main(x)
