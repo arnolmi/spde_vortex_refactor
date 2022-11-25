@@ -288,6 +288,7 @@ class SimulationConfig:
         self._seed = config.get('seed')
         self._steps = config.get('steps')
         self._noises = config.get('noises')
+        self._dt = config.get('dt')
 
         self._da = config.get('da')
 
