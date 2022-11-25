@@ -3,7 +3,7 @@ from __future__ import print_function
 import random
 from pandas import DataFrame
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from PIL import Image
 import seaborn as sns
 from tqdm import tqdm
@@ -12,6 +12,8 @@ import time
 import solvers
 import h5py
 import time
+
+import argparse
 
 # This must be the first statement before other statements.
 # You may only put a quoted or triple quoted string, 
@@ -48,9 +50,10 @@ valid_config = {
     'da': [lambda f: f, lambda f: f]
 }
 
-config = solvers.SimulationConfig(valid_config)
+def main(iteration, run_time, step_size, grid_size, data_path):
+    valid_config['ranges'] = (grid_size, grid_size)
+    config = solvers.SimulationConfig(valid_config)
     
-def main(iteration): 
     prefix_hash = random.getrandbits(128)
     for parameter in np.arange(-1, -2, -1):
         parameter = -1
@@ -61,51 +64,24 @@ def main(iteration):
         #rk4 = solvers.RK4(config,  underdamped)
         rk4 = solvers.VelocityVerlet(config, underdamped)
 
-        dt = 0.005
+        dt = step_size
         string = "underdamped_{}_ud".format(grid_size)
-        fd = h5py.File('current_run/candidate_{}-{}-{}-{}-gs1-dt-{}.hdf5'.format(string, prefix_hash, str(parameter), int(iteration), dt), 'w')
+        fd = h5py.File('{}/candidate_{}-{}-{}-{}-gs1-dt-{}.hdf5'.format(data_path, string, prefix_hash, str(parameter), int(iteration), dt), 'w')
         start_time = time.time()
         overdamped = True
         run_once = False
         while True:
-            #real_time = rk4._time * dt
-            #o_real_time = rk4._time * odt
             en, en2, en3, ke, tot, real_time, steps = rk4.step(dt)
-            #if rk4._time < 16000:
-            #    continue
-
-            # thermalize for 16000 time steps (320 seconds in simulation time)
-            #if rk4._time >= 16000:
-            #    #rk4.clear_thermalize()
-            #    rk4.clear_use_overdamped()
-
-            # run the underdamped case for 350 seconds
-            #print(real_time)
-            #if real_time >= 350:
-                #rk4.clear_use_overdamped()
-                #breakpoint()
-            #    rk4.clear_thermalize()
-            #rk4.clear_thermalize()
-            #rk4.clear_use_overdamped()
             if rk4._time < 50:
                 continue
 
             if rk4._time >= 50 and rk4._time < 100:
                 rk4.clear_use_overdamped()
-                #rk4.clear_thermalize()
-                #continue
 
             if rk4._time >= 100 and rk4._time <= 150:
                 rk4.clear_thermalize()
             elif rk4._time >= 150 and run_once == False:
                 run_once = True
-                #old = rk4
-                #rk4 = solvers.VelocityVerlet(config, underdamped)
-                #rk4.clear_thermalize()
-                #rk4._steps = old._steps
-                #rk4._time = old._time
-                #rk4._field_matrix = np.copy(old._field_matrix)
-                #rk4.clear_use_overdamped()
                 pass
             if  rk4._steps % 1000 == 0:
                 print(real_time)
@@ -140,14 +116,27 @@ def main(iteration):
 
                 field_data = g.create_dataset('a4', (grid_size,grid_size), dtype='float64', chunks=(grid_size,grid_size), compression='gzip')
                 field_data[:,:] = a4
-               
 
                 print("time: {}".format(real_time))
                 print("runtime: {}".format(time.time() - start_time))
                 start_time = time.time()
-            if real_time >= 2680:
+            if real_time >= run_time:
                 break
-#main(0)
-for x in tqdm(range(0,5)):
-    print("Iteration {}".format(x))
-    main(x)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description = "Runs and Energy Conserving Underdamped Simulation")
+    parser.add_argument('-c', action='store_true')
+    parser.add_argument('--run_for_realtime', type=int, required=True)
+    parser.add_argument('--step_size', type=float, required=True)
+    parser.add_argument('--grid_size', type=int, required=True)
+    parser.add_argument('--data_path', required=True)
+    args = parser.parse_args()
+    
+    run_time = args.run_for_realtime
+    step_size = args.step_size
+    grid_size = args.grid_size
+    data_path = args.data_path
+    
+    for x in tqdm(range(0,5)):
+        print("Iteration {}".format(x))
+        main(x, run_time, step_size, grid_size, data_path)
