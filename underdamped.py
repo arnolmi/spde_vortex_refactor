@@ -13,6 +13,8 @@ import solvers
 import h5py
 import time
 
+import math_helper
+
 import argparse
 
 # This must be the first statement before other statements.
@@ -47,11 +49,14 @@ valid_config = {
     'seed': 5,
     'steps': 400,
     'noises': 4,
+    'dt': 0.005,
     'da': [lambda f: f, lambda f: f]
 }
 
 def main(iteration, run_time, step_size, grid_size, data_path):
     valid_config['ranges'] = (grid_size, grid_size)
+    valid_config['dt'] = step_size
+    
     config = solvers.SimulationConfig(valid_config)
     
     prefix_hash = random.getrandbits(128)
@@ -88,11 +93,11 @@ def main(iteration, run_time, step_size, grid_size, data_path):
                 a,b,c = rk4.get_engine_parameters()
                 print("therm: {} engine: {} parameter: {}\n".format(a,b,c))
                 g = fd.create_group("{}".format(real_time ))
-                en = solvers.get_real_numpy_array(en)
-                en2 = solvers.get_real_numpy_array(en2)
-                en3 = solvers.get_real_numpy_array(en3)
-                ke = solvers.get_real_numpy_array(ke)
-                tot = solvers.get_real_numpy_array(tot)
+                en = math_helper.get_real_numpy_array(en)
+                en2 = math_helper.get_real_numpy_array(en2)
+                en3 = math_helper.get_real_numpy_array(en3)
+                ke = math_helper.get_real_numpy_array(ke)
+                tot = math_helper.get_real_numpy_array(tot)
                 g.attrs['en'] = en
                 g.attrs['en2'] = en2
                 g.attrs['en3'] = en3
@@ -100,11 +105,11 @@ def main(iteration, run_time, step_size, grid_size, data_path):
                 g.attrs['tot'] = tot
                 g.attrs['steps'] = steps
                 g.attrs['real_time'] = real_time
-                a1 = solvers.get_real_numpy_array(rk4._field_matrix[0])
-                a2 = solvers.get_real_numpy_array(rk4._field_matrix[1])
+                a1 = math_helper.get_real_numpy_array(rk4._field_matrix[0])
+                a2 = math_helper.get_real_numpy_array(rk4._field_matrix[1])
                 print(a1)
-                a3 = solvers.get_real_numpy_array(rk4._field_matrix[2])
-                a4 = solvers.get_real_numpy_array(rk4._field_matrix[3])
+                a3 = math_helper.get_real_numpy_array(rk4._field_matrix[2])
+                a4 = math_helper.get_real_numpy_array(rk4._field_matrix[3])
                 field_data = g.create_dataset('a1', (grid_size,grid_size), dtype='float64', chunks=(grid_size,grid_size), compression='gzip')
                 field_data[:,:] = a1
 

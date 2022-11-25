@@ -1,5 +1,6 @@
 import os
-import solvers
+#import solvers
+import math_helper
 import h5py
 
 import numpy as np
@@ -59,8 +60,8 @@ def extract_fields(fd):
     return a1s[argidx], a2s[argidx], a3s[argidx], a4s[argidx], times[argidx], x_size, y_size
 
 def compute_correlation_length(a1, a3, x_size, y_size):
-    corr = solvers.correlation_lengths(a1, a3, stride=5, method='FFT')
-    distances = solvers.generate_grid_distances((x_size, y_size))
+    corr = math_helper.correlation_lengths_fft(a1, a3)
+    distances = math_helper.generate_grid_distances((x_size, y_size))
 
     return corr, distances
 

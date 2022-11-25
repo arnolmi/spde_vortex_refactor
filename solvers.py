@@ -1,3 +1,4 @@
+
 #!/bin/python3
 from __future__ import print_function
 import sys
@@ -24,7 +25,7 @@ from skimage.feature import blob_log
 from pandas import DataFrame
 import seaborn as sns
 import scipy
-import math
+import math_helper
 import random
 from PIL import Image, ImageOps, ImageDraw, ImageFont
 import matplotlib.pyplot as plt
@@ -46,17 +47,17 @@ def print(*args, **kwargs):
     #return __builtin__.print(*args, **kwargs)
     pass
 
-def get_real_numpy_array(x):
-    if USE_CUPY:
-        return np_real.array(np.asnumpy(x))
-    else:
-        return x
+#def get_real_numpy_array(x):
+#    if USE_CUPY:
+#        return np_real.array(np.asnumpy(x))
+#    else:
+#        return x
 
-def convert_to_cupy_array(x):
-    if USE_CUPY:
-        return np.array(x)
-    else:
-        return x 
+#def convert_to_cupy_array(x):
+#    if USE_CUPY:
+#        return np.array(x)
+#    else:
+#        return x 
 
 class ConfigError(Exception):
     """ Base class for config problems """
@@ -403,117 +404,6 @@ class Integrator:
         b_start = b-1
         b_end = b_start + b+2
         return temp_matrix[a_start:a_end, b_start:b_end]
-    
-    #def laplacian_2d(self, matrix):
-    #    # nine-point-stencil kernel
-    #    #kernel = np.array([[0, 1, 0], [1, -4, 1], [0, 1, 0]]) # 5 point stencil
-    #    kernel = np.array([[1, 4, 1], [4, -20,4], [1, 4, 1]])  # 9 point stencil
-    #    # periodic padding
-    #    temp_mat = np.pad(matrix, (1,1), 'wrap')
-    #    #breakpoint()
-    #    return signal.convolve2d(temp_mat, kernel, mode='valid')
-        #return signal.fftconvolve(kernel, temp_mat, 'valid')
-def squash(x):
-    x = np.where(x <= -np.pi, x+2*np.pi, x)
-    return np.where(np.pi <= x, x-2*np.pi, x)
-
-def getCorrelationFFT(a):
-    a = np.array(a)
-    af = np.abs(np.fft.fft2(a))**2
-    corr = np.real(np.fft.ifft2(af))
-    corr = get_real_numpy_array(corr)
-    return corr#[:,0]
-
-def compute_angle_cuda(a1, a2):
-    return np.arctan2(a1, a2)
-    
-def correlation_lengths(a1, a2, stride=5, method='GPU'):
-    # Tile the matrix
-    #cuda = cuda_api.CudaAPI()
-    #correlations = np.zeros(a1.shape)
-    T_SIZE, X_SIZE, Y_SIZE = a1.shape
-    if False:  #method == 'GPU':    // Disabled for now
-        #cuda = cuda_api.CudaAPI()
-
-        # grab the angles
-        angles = np.zeros((a1.shape))
-        angles[::] = cuda.cuda_calculate_angle(a1, a2)
-        temp_angles = np.tile(angles, (3,3))
-        num_subsets = 0
-        correlations = np.zeros((T_SIZE, X_SIZE, Y_SIZE))
-        for x in range(0, X_SIZE, stride):
-            for y in range(0, Y_SIZE, stride):
-                submatrix = temp_angles[:,x:x+X_SIZE,y:y+Y_SIZE]
-
-                #breakpoint()
-                correlations += cuda.cuda_two_point_correlation(submatrix)
-                num_subsets += 1
-
-        correlations = correlations / num_subsets
-    elif method == 'FFT':
-        a1c = getCorrelationFFT(a1)
-        a2c = getCorrelationFFT(a2)
-  
-        corr = (a1c + a2c) / 2
-
-        correlations = np_real.zeros((T_SIZE, X_SIZE, Y_SIZE))
-        for i in range(0, T_SIZE):
-            #breakpoint()
-            #correlations[i,:] = corr[i,:] / corr[i,0]
-            correlations[i,:,:] = corr[i,:,:] / corr[i,0,0]
-
-    return correlations
-
-def distance(p1, p2, dimension):
-    total = 0
-    for i, (a, b) in enumerate(zip(p1, p2)):
-        delta = abs(b - a)
-        if delta > dimension[i] - delta:
-            delta = dimension[i] - delta
-        total += delta ** 2
-    return total ** 0.5
-
-
-def generate_grid_distances(shape):
-    #breakpoint()
-    x_size, y_size = shape
-    distances = np.zeros(shape)
-    to_visit = [(0,0)]
-    visited = []
-    while True:
-        #breakpoint()
-        try:
-            point_x, point_y = to_visit.pop(0)
-        except IndexError:
-            break
-        
-        if (point_x, point_y) in visited:
-            continue
-        
-        if point_x >= shape[0]-1:
-            continue
-
-        if point_y >= shape[1]-1:
-            continue
-        
-        prev_distance = distances[point_x][point_y]
-
-        for x in range(0, shape[0]):
-            for y in range(0, shape[1]):
-                if distances[x][y] == 0:
-                    d = distance(np.array([0,0]), np.array([x,y]), shape)
-                    distances[x][y] = d
-                    distances[y][x] = d
-        
-    return distances
-def bmatrix(a):
-    if len(a.shape) > 2:
-        raise ValueError('bmatrix can at most display two dimensions')
-    lines = str(a).replace('[', '').replace(']', '').splitlines()
-    rv = [r'\begin{bmatrix}']
-    rv += ['  ' + ' & '.join(l.split()) + r'\\' for l in lines]
-    rv +=  [r'\end{bmatrix}']
-    return '\n'.join(rv)
 
 
 class VelocityVerlet(Integrator):
